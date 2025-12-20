@@ -9,7 +9,7 @@ It detects fingertip presses over a calibrated paper keyboard area and shows:
 - **WPM estimate** (standard: `(characters / 5) / minute`)
 - A **settings panel** to tune press/lift thresholds and smoothing
 
-This version is refactored into small, readable modules under `./js/`.
+This version is combined into a single HTML file.
 
 ---
 
@@ -24,43 +24,6 @@ This version is refactored into small, readable modules under `./js/`.
      4) Bottom-left (below **Z**)
 3. Confirm the **green grid** aligns with your paper keys.
 4. **Start Tracking** and tap keys.
-
----
-
-## Running locally (recommended)
-
-Camera access typically requires `localhost` or HTTPS.
-
-### Option A: Python (simple)
-```bash
-python3 -m http.server 8000
-```
-Open: `http://localhost:8000`
-
-### Option B: Node
-```bash
-npx serve .
-```
-
----
-
-## Project structure
-
-```
-.
-├── index.html
-└── js
-    ├── main.js          # wires everything up
-    ├── state.js         # shared mutable state
-    ├── ui.js            # DOM refs + UI updates
-    ├── settings.js      # settings panel bindings
-    ├── mediapipe.js     # MediaPipe Hands setup + results loop
-    ├── calibration.js   # 4-click calibration workflow
-    ├── keyboard.js      # keyboard layout + coordinate mapping
-    ├── detection.js     # press/lift logic + typing/WPM
-    ├── draw.js          # canvas overlays (grid + hands)
-    └── utils.js         # geometry helpers (point-in-polygon, lerp)
-```
 
 ---
 
@@ -93,23 +56,3 @@ If “wrong key” is detected:
 
 ---
 
-## Privacy
-
-All processing is done **in your browser** using MediaPipe in the page.  
-No images are uploaded by this code. (Browser/extension tooling is outside scope.)
-
----
-
-## Troubleshooting
-
-**“Camera not active” / no prompt**
-- Serve via `localhost` (not `file://`).
-- Make sure the browser has camera permission.
-
-**Green grid not visible**
-- You must click 4 corners while calibration is active.
-
-**Hands not detected**
-- Increase lighting, move hands closer, ensure camera is unobstructed.
-
-**Still Under Development**
