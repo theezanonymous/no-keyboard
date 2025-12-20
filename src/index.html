@@ -1,206 +1,791 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Virtual Paper Keyboard Tracker</title>
-
-  <!-- MediaPipe -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
-
-  <!-- Tailwind -->
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Paper Keyboard Tracker - Enhanced Letter Detection</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-
 <body class="bg-gradient-to-br from-slate-900 to-slate-800 text-white min-h-screen p-6">
-  <div class="max-w-7xl mx-auto">
-    <h1 class="text-4xl font-bold mb-2">Virtual Paper Keyboard Tracker</h1>
-    <p class="text-slate-400 mb-6">Enhanced letter detection with improved spatial mapping</p>
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-4xl font-bold mb-2">Virtual Paper Keyboard Tracker</h1>
+        <p class="text-slate-400 mb-6">Enhanced letter detection with improved spatial mapping</p>
 
-    <!-- Status Bar -->
-    <div class="mb-4 flex gap-3 flex-wrap">
-      <div id="statusLoading" class="px-3 py-1 rounded text-sm bg-yellow-600">⏳ Loading Hand Tracking...</div>
-      <div id="statusHands" class="px-3 py-1 rounded text-sm bg-slate-600 hidden">○ No Hands Detected</div>
-      <button id="toggleSettings" class="px-3 py-1 rounded text-sm bg-slate-700 hover:bg-slate-600">Show Settings</button>
-    </div>
-
-    <!-- Settings Panel -->
-    <div id="settingsPanel" class="mb-6 bg-slate-800 rounded-lg p-4 border border-slate-700 hidden">
-      <h3 class="font-semibold mb-3">Detection Settings</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div>
-          <label class="block text-sm text-slate-400 mb-1">
-            Press Threshold: <span id="pressThresholdValue">0.015</span>
-          </label>
-          <input type="range" id="pressThreshold" min="0.005" max="0.030" step="0.001" value="0.015" class="w-full">
-        </div>
-        <div>
-          <label class="block text-sm text-slate-400 mb-1">
-            Lift Threshold: <span id="liftThresholdValue">0.012</span>
-          </label>
-          <input type="range" id="liftThreshold" min="0.005" max="0.025" step="0.001" value="0.012" class="w-full">
-        </div>
-        <div>
-          <label class="block text-sm text-slate-400 mb-1">
-            Debounce Time: <span id="debounceTimeValue">250</span>ms
-          </label>
-          <input type="range" id="debounceTime" min="100" max="500" step="50" value="250" class="w-full">
-        </div>
-        <div>
-          <label class="block text-sm text-slate-400 mb-1">
-            Velocity Weight: <span id="velocityWeightValue">0.6</span>
-          </label>
-          <input type="range" id="velocityWeight" min="0" max="1" step="0.1" value="0.6" class="w-full">
-        </div>
-        <div>
-          <label class="block text-sm text-slate-400 mb-1">
-            Min Press Time: <span id="minPressTimeValue">50</span>ms
-          </label>
-          <input type="range" id="minPressTime" min="0" max="200" step="10" value="50" class="w-full">
-        </div>
-        <div>
-          <label class="block text-sm text-slate-400 mb-1">
-            Smoothing Frames: <span id="smoothingFramesValue">3</span>
-          </label>
-          <input type="range" id="smoothingFrames" min="1" max="7" step="1" value="3" class="w-full">
-        </div>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Video Feed -->
-      <div class="lg:col-span-2 space-y-4">
-        <div class="bg-slate-800 rounded-lg p-4 border border-slate-700">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold">Camera Feed</h2>
-            <button id="toggleCamera" class="px-4 py-2 rounded-lg font-medium bg-blue-600 hover:bg-blue-700">
-              Start Camera
+        <!-- Status Bar -->
+        <div class="mb-4 flex gap-3 flex-wrap">
+            <div id="statusLoading" class="px-3 py-1 rounded text-sm bg-yellow-600">
+                ⏳ Loading Hand Tracking...
+            </div>
+            <div id="statusHands" class="px-3 py-1 rounded text-sm bg-slate-600 hidden">
+                ○ No Hands Detected
+            </div>
+            <button id="toggleSettings" class="px-3 py-1 rounded text-sm bg-slate-700 hover:bg-slate-600">
+                Show Settings
             </button>
-          </div>
+        </div>
 
-          <div class="relative bg-black rounded-lg overflow-hidden" style="aspect-ratio: 16/9;">
-            <video id="videoElement" autoplay playsinline muted class="hidden"></video>
-            <canvas id="canvasElement" class="w-full h-full cursor-crosshair"></canvas>
-            <div id="cameraPlaceholder" class="absolute inset-0 flex items-center justify-center">
-              <p class="text-slate-400">Camera not active</p>
+        <!-- Settings Panel -->
+        <div id="settingsPanel" class="mb-6 bg-slate-800 rounded-lg p-4 border border-slate-700 hidden">
+            <h3 class="font-semibold mb-3">Detection Settings</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm text-slate-400 mb-1">
+                        Press Threshold: <span id="pressThresholdValue">0.015</span>
+                    </label>
+                    <input type="range" id="pressThreshold" min="0.005" max="0.030" step="0.001" value="0.015" class="w-full">
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-400 mb-1">
+                        Lift Threshold: <span id="liftThresholdValue">0.012</span>
+                    </label>
+                    <input type="range" id="liftThreshold" min="0.005" max="0.025" step="0.001" value="0.012" class="w-full">
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-400 mb-1">
+                        Debounce Time: <span id="debounceTimeValue">250</span>ms
+                    </label>
+                    <input type="range" id="debounceTime" min="100" max="500" step="50" value="250" class="w-full">
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-400 mb-1">
+                        Velocity Weight: <span id="velocityWeightValue">0.6</span>
+                    </label>
+                    <input type="range" id="velocityWeight" min="0" max="1" step="0.1" value="0.6" class="w-full">
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-400 mb-1">
+                        Min Press Time: <span id="minPressTimeValue">50</span>ms
+                    </label>
+                    <input type="range" id="minPressTime" min="0" max="200" step="10" value="50" class="w-full">
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-400 mb-1">
+                        Smoothing Frames: <span id="smoothingFramesValue">3</span>
+                    </label>
+                    <input type="range" id="smoothingFrames" min="1" max="5" step="1" value="3" class="w-full">
+                </div>
             </div>
-          </div>
-
-          <div id="debugInfo" class="mt-2 text-xs text-green-400 font-mono"></div>
         </div>
 
-        <!-- Controls -->
-        <div class="bg-slate-800 rounded-lg p-4 border border-slate-700">
-          <h2 class="text-xl font-semibold mb-4">Controls</h2>
-          <div class="flex gap-3">
-            <button id="calibrateBtn" disabled
-              class="flex-1 px-4 py-3 rounded-lg font-medium bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed">
-              Calibrate Keyboard
-            </button>
-            <button id="trackingBtn" disabled
-              class="flex-1 px-4 py-3 rounded-lg font-medium bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
-              Start Tracking
-            </button>
-          </div>
-          <div class="mt-3 text-xs text-slate-400">
-            Calibration: <span id="calibrationStatus">Not calibrated</span>
-          </div>
-        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Video Feed -->
+            <div class="lg:col-span-2 space-y-4">
+                <div class="bg-slate-800 rounded-lg p-4 border border-slate-700">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold">Camera Feed</h2>
+                        <button id="toggleCamera" class="px-4 py-2 rounded-lg font-medium bg-blue-600 hover:bg-blue-700">
+                            Start Camera
+                        </button>
+                    </div>
+                    
+                    <div class="relative bg-black rounded-lg overflow-hidden" style="aspect-ratio: 16/9;">
+                        <video id="videoElement" autoplay playsinline muted class="hidden"></video>
+                        <canvas id="canvasElement" class="w-full h-full cursor-crosshair"></canvas>
+                        <div id="cameraPlaceholder" class="absolute inset-0 flex items-center justify-center">
+                            <p class="text-slate-400">Camera not active</p>
+                        </div>
+                    </div>
+                    
+                    <div id="debugInfo" class="mt-2 text-xs text-green-400 font-mono"></div>
+                </div>
 
-        <!-- Keyboard Layout Reference -->
-        <div class="bg-slate-800 rounded-lg p-4 border border-slate-700">
-          <h2 class="text-lg font-semibold mb-3">Expected Keyboard Layout (QWERTY)</h2>
-          <div class="space-y-2 font-mono text-sm">
-            <div class="flex gap-1">
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">Q</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">W</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">E</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">R</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">T</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">Y</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">U</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">I</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">O</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">P</div>
+                <!-- Controls -->
+                <div class="bg-slate-800 rounded-lg p-4 border border-slate-700">
+                    <h2 class="text-xl font-semibold mb-4">Controls</h2>
+                    <div class="flex gap-3">
+                        <button id="calibrateBtn" disabled class="flex-1 px-4 py-3 rounded-lg font-medium bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Calibrate Keyboard
+                        </button>
+                        <button id="trackingBtn" disabled class="flex-1 px-4 py-3 rounded-lg font-medium bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Start Tracking
+                        </button>
+                    </div>
+                    <div class="mt-3 text-xs text-slate-400">
+                        Calibration: <span id="calibrationStatus">Not calibrated</span>
+                    </div>
+                </div>
+
+                <!-- Keyboard Layout Reference -->
+                <div class="bg-slate-800 rounded-lg p-4 border border-slate-700">
+                    <h2 class="text-lg font-semibold mb-3">Expected Keyboard Layout (QWERTY)</h2>
+                    <div class="space-y-2 font-mono text-sm">
+                        <div class="flex gap-1">
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">Q</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">W</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">E</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">R</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">T</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">Y</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">U</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">I</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">O</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">P</div>
+                        </div>
+                        <div class="flex gap-1 pl-4">
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">A</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">S</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">D</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">F</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">G</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">H</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">J</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">K</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">L</div>
+                        </div>
+                        <div class="flex gap-1 pl-8">
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">Z</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">X</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">C</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">V</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">B</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">N</div>
+                            <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">M</div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-2">Make sure your paper keyboard matches this layout</p>
+                </div>
             </div>
-            <div class="flex gap-1 pl-4">
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">A</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">S</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">D</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">F</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">G</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">H</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">J</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">K</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">L</div>
+
+            <!-- Stats & Output -->
+            <div class="space-y-4">
+                <!-- WPM Display -->
+                <div class="bg-slate-800 rounded-lg p-6 border border-slate-700">
+                    <h2 class="text-lg font-semibold mb-2">Words Per Minute</h2>
+                    <div id="wpmDisplay" class="text-5xl font-bold text-blue-400">0</div>
+                    <p class="text-slate-400 text-sm mt-2">
+                        <span id="keyCount">0</span> keys pressed
+                    </p>
+                </div>
+
+                <!-- Recent Keys -->
+                <div class="bg-slate-800 rounded-lg p-4 border border-slate-700">
+                    <h2 class="text-lg font-semibold mb-3">Recent Keys</h2>
+                    <div id="recentKeys" class="flex gap-2 flex-wrap min-h-[40px]"></div>
+                </div>
+
+                <!-- Typed Text -->
+                <div class="bg-slate-800 rounded-lg p-4 border border-slate-700">
+                    <h2 class="text-lg font-semibold mb-3">Typed Text</h2>
+                    <div id="typedText" class="bg-slate-900 rounded p-3 min-h-[120px] font-mono text-sm break-words">
+                        <span class="text-slate-500">Start typing...</span>
+                    </div>
+                    <button id="clearText" class="mt-2 text-xs text-slate-400 hover:text-white">Clear</button>
+                </div>
+
+                <!-- Last Detected Position -->
+                <div class="bg-slate-800 rounded-lg p-4 border border-slate-700">
+                    <h2 class="text-lg font-semibold mb-3">Detection Debug</h2>
+                    <div id="positionDebug" class="text-xs text-slate-400 font-mono space-y-1">
+                        <div>Row: <span id="detectedRow">-</span></div>
+                        <div>Col: <span id="detectedCol">-</span></div>
+                        <div>Key: <span id="detectedKey" class="text-green-400 text-lg font-bold">-</span></div>
+                    </div>
+                </div>
             </div>
-            <div class="flex gap-1 pl-8">
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">Z</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">X</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">C</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">V</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">B</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">N</div>
-              <div class="bg-slate-700 px-2 py-1 rounded text-center min-w-[32px]">M</div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="mt-6 bg-slate-800 rounded-lg p-4 border border-slate-700">
+            <h3 class="font-semibold mb-2">Setup Instructions:</h3>
+            <ol class="text-sm text-slate-300 space-y-2 list-decimal list-inside">
+                <li><strong>Print or draw</strong> a QWERTY keyboard on paper matching the layout shown above</li>
+                <li>Click <strong>"Start Camera"</strong> and position your paper keyboard in view</li>
+                <li>Click <strong>"Calibrate Keyboard"</strong> and carefully click:
+                    <ul class="ml-8 mt-1 list-disc">
+                        <li>Top-left corner (above Q)</li>
+                        <li>Top-right corner (above P)</li>
+                        <li>Bottom-right corner (below M)</li>
+                        <li>Bottom-left corner (below Z)</li>
+                    </ul>
+                </li>
+                <li>Verify the green box aligns with your keyboard</li>
+                <li>Click <strong>"Start Tracking"</strong> and type by pressing down on the keys</li>
+                <li>Watch the "Detection Debug" panel to see which key is being detected</li>
+            </ol>
+            <div class="mt-4 p-3 bg-blue-900/30 rounded">
+                <p class="text-sm text-blue-300">
+                    <strong>💡 Tip:</strong> The system uses a grid-based approach. Each row is divided equally among its keys. 
+                    Make sure your printed keyboard has evenly spaced keys for best accuracy.
+                </p>
             </div>
-          </div>
-          <p class="text-xs text-slate-400 mt-2">Make sure your paper keyboard matches this layout</p>
         </div>
-      </div>
-
-      <!-- Stats & Output -->
-      <div class="space-y-4">
-        <div class="bg-slate-800 rounded-lg p-6 border border-slate-700">
-          <h2 class="text-lg font-semibold mb-2">Words Per Minute</h2>
-          <div id="wpmDisplay" class="text-5xl font-bold text-blue-400">0</div>
-          <p class="text-slate-400 text-sm mt-2"><span id="keyCount">0</span> keys pressed</p>
-        </div>
-
-        <div class="bg-slate-800 rounded-lg p-4 border border-slate-700">
-          <h2 class="text-lg font-semibold mb-3">Recent Keys</h2>
-          <div id="recentKeys" class="flex gap-2 flex-wrap min-h-[40px]"></div>
-        </div>
-
-        <div class="bg-slate-800 rounded-lg p-4 border border-slate-700">
-          <h2 class="text-lg font-semibold mb-3">Typed Text</h2>
-          <div id="typedText" class="bg-slate-900 rounded p-3 min-h-[120px] font-mono text-sm break-words">
-            <span class="text-slate-500">Start typing...</span>
-          </div>
-          <button id="clearText" class="mt-2 text-xs text-slate-400 hover:text-white">Clear</button>
-        </div>
-
-        <div class="bg-slate-800 rounded-lg p-4 border border-slate-700">
-          <h2 class="text-lg font-semibold mb-3">Detection Debug</h2>
-          <div class="text-xs text-slate-400 font-mono space-y-1">
-            <div>Row: <span id="detectedRow">-</span></div>
-            <div>Col: <span id="detectedCol">-</span></div>
-            <div>Key: <span id="detectedKey" class="text-green-400 text-lg font-bold">-</span></div>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <!-- Instructions -->
-    <div class="mt-6 bg-slate-800 rounded-lg p-4 border border-slate-700">
-      <h3 class="font-semibold mb-2">Setup Instructions:</h3>
-      <ol class="text-sm text-slate-300 space-y-2 list-decimal list-inside">
-        <li><strong>Print or draw</strong> a QWERTY keyboard on paper matching the layout shown above</li>
-        <li>Click <strong>"Start Camera"</strong> and position your paper keyboard in view</li>
-        <li>Click <strong>"Calibrate Keyboard"</strong> and carefully click: Top-Left, Top-Right, Bottom-Right, Bottom-Left</li>
-        <li>Verify the green grid aligns with your keyboard</li>
-        <li>Click <strong>"Start Tracking"</strong> and type by pressing down on the keys</li>
-      </ol>
-      <div class="mt-4 p-3 bg-blue-900/30 rounded">
-        <p class="text-sm text-blue-300">
-          <strong>💡 Tip:</strong> For best accuracy, keep the paper keyboard flat, well lit, and fill most of the camera frame.
-        </p>
-      </div>
-    </div>
-  </div>
+    <script>
+        // State
+        let cameraActive = false;
+        let isCalibrating = false;
+        let isTracking = false;
+        let keyboardCorners = null;
+        let hands = null;
+        let camera = null;
+        let typedText = '';
+        let keyPressCount = 0;
+        let startTime = null;
+        let lastKeyPress = {};
+        let fingerState = {};
+        let fingerHistory = {};
 
-  <script type="module" src="./js/main.js"></script>
+        // Settings
+        let settings = {
+            pressThreshold: 0.015,
+            liftThreshold: 0.012,
+            debounceTime: 250,
+            velocityWeight: 0.6,
+            minPressTime: 50,
+            smoothingFrames: 3
+        };
+
+        // QWERTY layout - matches standard keyboard
+        const keyboardLayout = [
+            ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+            ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+            ['Z', 'X', 'C', 'V', 'B', 'N', 'M']
+        ];
+
+        // Elements
+        const videoElement = document.getElementById('videoElement');
+        const canvasElement = document.getElementById('canvasElement');
+        const toggleCameraBtn = document.getElementById('toggleCamera');
+        const calibrateBtn = document.getElementById('calibrateBtn');
+        const trackingBtn = document.getElementById('trackingBtn');
+        const statusLoading = document.getElementById('statusLoading');
+        const statusHands = document.getElementById('statusHands');
+        const cameraPlaceholder = document.getElementById('cameraPlaceholder');
+        const toggleSettingsBtn = document.getElementById('toggleSettings');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const calibrationStatus = document.getElementById('calibrationStatus');
+
+        // Settings event listeners
+        document.getElementById('pressThreshold').addEventListener('input', (e) => {
+            settings.pressThreshold = parseFloat(e.target.value);
+            document.getElementById('pressThresholdValue').textContent = e.target.value;
+        });
+        document.getElementById('liftThreshold').addEventListener('input', (e) => {
+            settings.liftThreshold = parseFloat(e.target.value);
+            document.getElementById('liftThresholdValue').textContent = e.target.value;
+        });
+        document.getElementById('debounceTime').addEventListener('input', (e) => {
+            settings.debounceTime = parseInt(e.target.value);
+            document.getElementById('debounceTimeValue').textContent = e.target.value;
+        });
+        document.getElementById('velocityWeight').addEventListener('input', (e) => {
+            settings.velocityWeight = parseFloat(e.target.value);
+            document.getElementById('velocityWeightValue').textContent = e.target.value;
+        });
+        document.getElementById('minPressTime').addEventListener('input', (e) => {
+            settings.minPressTime = parseInt(e.target.value);
+            document.getElementById('minPressTimeValue').textContent = e.target.value;
+        });
+        document.getElementById('smoothingFrames').addEventListener('input', (e) => {
+            settings.smoothingFrames = parseInt(e.target.value);
+            document.getElementById('smoothingFramesValue').textContent = e.target.value;
+        });
+
+        // Toggle settings
+        toggleSettingsBtn.addEventListener('click', () => {
+            if (settingsPanel.classList.contains('hidden')) {
+                settingsPanel.classList.remove('hidden');
+                toggleSettingsBtn.textContent = 'Hide Settings';
+            } else {
+                settingsPanel.classList.add('hidden');
+                toggleSettingsBtn.textContent = 'Show Settings';
+            }
+        });
+
+        // Initialize MediaPipe Hands
+        function initializeHands() {
+            hands = new Hands({
+                locateFile: (file) => {
+                    return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+                }
+            });
+
+            hands.setOptions({
+                maxNumHands: 2,
+                modelComplexity: 1,
+                minDetectionConfidence: 0.6,
+                minTrackingConfidence: 0.6
+            });
+
+            hands.onResults(onResults);
+
+            statusLoading.className = 'px-3 py-1 rounded text-sm bg-green-600';
+            statusLoading.textContent = '✓ Hand Tracking Loaded';
+        }
+
+        // Handle results
+        function onResults(results) {
+            const ctx = canvasElement.getContext('2d');
+            
+            canvasElement.width = results.image.width;
+            canvasElement.height = results.image.height;
+
+            ctx.save();
+            ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            ctx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+            // Draw calibration
+            if (keyboardCorners && keyboardCorners.length === 4) {
+                // Draw outer boundary
+                ctx.strokeStyle = '#00ff00';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                keyboardCorners.forEach((corner, i) => {
+                    const x = corner.x * canvasElement.width;
+                    const y = corner.y * canvasElement.height;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.closePath();
+                ctx.stroke();
+
+                // Draw keyboard grid with labels
+                const topLeft = keyboardCorners[0];
+                const topRight = keyboardCorners[1];
+                const bottomRight = keyboardCorners[2];
+                const bottomLeft = keyboardCorners[3];
+
+                ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
+                ctx.lineWidth = 1;
+                ctx.font = '12px monospace';
+                ctx.fillStyle = '#00ff00';
+
+                // Draw horizontal row dividers
+                for (let i = 1; i < 3; i++) {
+                    const t = i / 3;
+                    const y = topLeft.y + (bottomLeft.y - topLeft.y) * t;
+                    ctx.beginPath();
+                    ctx.moveTo(topLeft.x * canvasElement.width, y * canvasElement.height);
+                    ctx.lineTo(topRight.x * canvasElement.width, y * canvasElement.height);
+                    ctx.stroke();
+                }
+
+                // Draw vertical column dividers for each row
+                keyboardLayout.forEach((row, rowIdx) => {
+                    const rowT1 = rowIdx / 3;
+                    const rowT2 = (rowIdx + 1) / 3;
+                    const y1 = topLeft.y + (bottomLeft.y - topLeft.y) * rowT1;
+                    const y2 = topLeft.y + (bottomLeft.y - topLeft.y) * rowT2;
+                    
+                    for (let i = 1; i < row.length; i++) {
+                        const colT = i / row.length;
+                        const x = topLeft.x + (topRight.x - topLeft.x) * colT;
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(x * canvasElement.width, y1 * canvasElement.height);
+                        ctx.lineTo(x * canvasElement.width, y2 * canvasElement.height);
+                        ctx.stroke();
+                    }
+                });
+
+                // Label keys
+                keyboardLayout.forEach((row, rowIdx) => {
+                    const rowT = (rowIdx + 0.5) / 3;
+                    const y = topLeft.y + (bottomLeft.y - topLeft.y) * rowT;
+                    
+                    row.forEach((key, colIdx) => {
+                        const colT = (colIdx + 0.5) / row.length;
+                        const x = topLeft.x + (topRight.x - topLeft.x) * colT;
+                        
+                        ctx.fillText(key, x * canvasElement.width - 4, y * canvasElement.height + 4);
+                    });
+                });
+            }
+
+            // Draw hands
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                statusHands.className = 'px-3 py-1 rounded text-sm bg-green-600';
+                statusHands.textContent = '✓ Hands Detected';
+                
+                for (const landmarks of results.multiHandLandmarks) {
+                    drawConnectors(ctx, landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 2});
+                    drawLandmarks(ctx, landmarks, {color: '#FF0000', lineWidth: 1, radius: 3});
+
+                    // Highlight fingertips
+                    const fingerTips = [4, 8, 12, 16, 20];
+                    fingerTips.forEach(idx => {
+                        const tip = landmarks[idx];
+                        ctx.beginPath();
+                        ctx.arc(tip.x * canvasElement.width, tip.y * canvasElement.height, 8, 0, 2 * Math.PI);
+                        ctx.strokeStyle = '#FFD700';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    });
+
+                    if (isTracking && keyboardCorners && keyboardCorners.length === 4) {
+                        detectKeyPresses(landmarks);
+                    }
+                }
+            } else {
+                statusHands.className = 'px-3 py-1 rounded text-sm bg-slate-600';
+                statusHands.textContent = '○ No Hands Detected';
+            }
+
+            ctx.restore();
+        }
+
+        // Toggle camera
+        toggleCameraBtn.addEventListener('click', async () => {
+            if (!cameraActive) {
+                try {
+                    camera = new Camera(videoElement, {
+                        onFrame: async () => {
+                            await hands.send({image: videoElement});
+                        },
+                        width: 1280,
+                        height: 720
+                    });
+                    await camera.start();
+                    
+                    cameraActive = true;
+                    cameraPlaceholder.classList.add('hidden');
+                    statusHands.classList.remove('hidden');
+                    toggleCameraBtn.textContent = 'Stop Camera';
+                    toggleCameraBtn.className = 'px-4 py-2 rounded-lg font-medium bg-red-600 hover:bg-red-700';
+                    calibrateBtn.disabled = false;
+                } catch (err) {
+                    alert('Camera access denied: ' + err.message);
+                }
+            } else {
+                if (camera) camera.stop();
+                cameraActive = false;
+                isTracking = false;
+                cameraPlaceholder.classList.remove('hidden');
+                statusHands.classList.add('hidden');
+                toggleCameraBtn.textContent = 'Start Camera';
+                toggleCameraBtn.className = 'px-4 py-2 rounded-lg font-medium bg-blue-600 hover:bg-blue-700';
+                calibrateBtn.disabled = true;
+                trackingBtn.disabled = true;
+                trackingBtn.textContent = 'Start Tracking';
+                trackingBtn.className = 'flex-1 px-4 py-3 rounded-lg font-medium bg-green-600 hover:bg-green-700';
+            }
+        });
+
+        // Calibration
+        calibrateBtn.addEventListener('click', () => {
+            isCalibrating = !isCalibrating;
+            if (isCalibrating) {
+                keyboardCorners = [];
+                calibrationStatus.textContent = 'Click 4 corners...';
+                alert('Click 4 corners: Top-Left, Top-Right, Bottom-Right, Bottom-Left');
+                calibrateBtn.textContent = 'Calibrating...';
+                calibrateBtn.className = 'flex-1 px-4 py-3 rounded-lg font-medium bg-yellow-600 hover:bg-yellow-700';
+            } else {
+                calibrateBtn.textContent = 'Calibrate Keyboard';
+                calibrateBtn.className = 'flex-1 px-4 py-3 rounded-lg font-medium bg-slate-700 hover:bg-slate-600';
+            }
+        });
+
+        // Canvas click for calibration
+        canvasElement.addEventListener('click', (e) => {
+            if (!isCalibrating) return;
+            
+            const rect = canvasElement.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width;
+            const y = (e.clientY - rect.top) / rect.height;
+            
+            keyboardCorners.push({ x, y });
+            calibrationStatus.textContent = `Calibrating: ${keyboardCorners.length}/4 corners`;
+            
+            if (keyboardCorners.length === 4) {
+                isCalibrating = false;
+                calibrateBtn.textContent = 'Calibrate Keyboard';
+                calibrateBtn.className = 'flex-1 px-4 py-3 rounded-lg font-medium bg-slate-700 hover:bg-slate-600';
+                trackingBtn.disabled = false;
+                calibrationStatus.textContent = 'Calibrated ✓';
+                alert('Calibration complete! Check that the green grid aligns with your keyboard.');
+            }
+        });
+
+        // Tracking
+        trackingBtn.addEventListener('click', () => {
+            isTracking = !isTracking;
+            if (isTracking) {
+                startTime = Date.now();
+                keyPressCount = 0;
+                typedText = '';
+                lastKeyPress = {};
+                fingerState = {};
+                fingerHistory = {};
+                document.getElementById('typedText').innerHTML = '<span class="text-slate-500">Start typing...</span>';
+                trackingBtn.textContent = 'Stop Tracking';
+                trackingBtn.className = 'flex-1 px-4 py-3 rounded-lg font-medium bg-red-600 hover:bg-red-700';
+            } else {
+                trackingBtn.textContent = 'Start Tracking';
+                trackingBtn.className = 'flex-1 px-4 py-3 rounded-lg font-medium bg-green-600 hover:bg-green-700';
+            }
+        });
+
+        // Clear text
+        document.getElementById('clearText').addEventListener('click', () => {
+            typedText = '';
+            keyPressCount = 0;
+            document.getElementById('typedText').innerHTML = '<span class="text-slate-500">Start typing...</span>';
+            document.getElementById('keyCount').textContent = '0';
+            document.getElementById('wpmDisplay').textContent = '0';
+        });
+
+        // Enhanced key press detection
+        function detectKeyPresses(landmarks) {
+            const fingerTips = [8, 12, 16, 20]; // Index, Middle, Ring, Pinky
+            const now = Date.now();
+            
+            fingerTips.forEach((tipIdx, i) => {
+                const tip = landmarks[tipIdx];
+                const tipX = tip.x;
+                const tipY = tip.y;
+                const tipZ = tip.z;
+
+                if (!isPointInKeyboard(tipX, tipY)) return;
+
+                const fingerId = `finger_${i}`;
+                
+                // Initialize history if needed
+                if (!fingerHistory[fingerId]) {
+                    fingerHistory[fingerId] = {
+                        positions: [],
+                        lastPress: 0,
+                        pressStartTime: null
+                    };
+                }
+
+                const history = fingerHistory[fingerId];
+                
+                // Add current position to history
+                history.positions.push({ z: tipZ, time: now });
+                
+                // Keep only recent history
+                if (history.positions.length > settings.smoothingFrames) {
+                    history.positions.shift();
+                }
+
+                // Calculate smoothed Z position
+                const avgZ = history.positions.reduce((sum, p) => sum + p.z, 0) / history.positions.length;
+                
+                // Calculate velocity
+                let velocity = 0;
+                if (history.positions.length >= 2) {
+                    const recent = history.positions[history.positions.length - 1];
+                    const previous = history.positions[history.positions.length - 2];
+                    const timeDiff = recent.time - previous.time;
+                    velocity = timeDiff > 0 ? (recent.z - previous.z) / timeDiff : 0;
+                }
+
+                // Get current state
+                const lastState = fingerState[fingerId] || { 
+                    z: avgZ, 
+                    pressed: false,
+                    baseline: avgZ 
+                };
+
+                // Calculate Z difference from baseline
+                const zDiff = avgZ - lastState.baseline;
+                
+                // Weighted detection
+                const pressScore = zDiff + (velocity * settings.velocityWeight * 100);
+                const liftScore = -zDiff + (-velocity * settings.velocityWeight * 100);
+
+                // Update debug display with current position
+                const keyInfo = getKeyAtPosition(tipX, tipY, true);
+                if (keyInfo) {
+                    document.getElementById('detectedRow').textContent = keyInfo.row;
+                    document.getElementById('detectedCol').textContent = keyInfo.col;
+                    document.getElementById('detectedKey').textContent = keyInfo.key || '-';
+                }
+
+                // Detect press
+                if (!lastState.pressed && pressScore > settings.pressThreshold) {
+                    fingerState[fingerId] = { 
+                        z: avgZ, 
+                        pressed: true,
+                        baseline: lastState.baseline,
+                        pressStartTime: now
+                    };
+                    history.pressStartTime = now;
+                    
+                    document.getElementById('debugInfo').textContent = `Finger ${i}: Press detected (score: ${pressScore.toFixed(4)})`;
+                    
+                } else if (lastState.pressed && liftScore > settings.liftThreshold) {
+                    // Finger lifted
+                    const pressDuration = now - (history.pressStartTime || now);
+                    
+                    if (pressDuration >= settings.minPressTime) {
+                        const key = getKeyAtPosition(tipX, tipY);
+                        if (key) registerKeyPress(key, fingerId);
+                    }
+                    
+                    fingerState[fingerId] = { 
+                        z: avgZ, 
+                        pressed: false,
+                        baseline: avgZ
+                    };
+                    history.pressStartTime = null;
+                    
+                    document.getElementById('debugInfo').textContent = `Finger ${i}: Lift detected (duration: ${pressDuration}ms)`;
+                    
+                } else {
+                    fingerState[fingerId] = {
+                        ...lastState,
+                        z: avgZ
+                    };
+                    
+                    // Gradually update baseline
+                    if (!lastState.pressed && Math.abs(velocity) < 0.0001) {
+                        const alpha = 0.1;
+                        fingerState[fingerId].baseline = lastState.baseline * (1 - alpha) + avgZ * alpha;
+                    }
+                }
+            });
+        }
+
+        function isPointInKeyboard(x, y) {
+            if (!keyboardCorners || keyboardCorners.length !== 4) return false;
+            
+            // Use proper polygon point-in-polygon test
+            const corners = keyboardCorners;
+            
+            // Simple bounding box check first
+            const minX = Math.min(corners[0].x, corners[1].x, corners[2].x, corners[3].x);
+            const maxX = Math.max(corners[0].x, corners[1].x, corners[2].x, corners[3].x);
+            const minY = Math.min(corners[0].y, corners[1].y, corners[2].y, corners[3].y);
+            const maxY = Math.max(corners[0].y, corners[1].y, corners[2].y, corners[3].y);
+            
+            return x >= minX && x <= maxX && y >= minY && y <= maxY;
+        }
+
+        function getKeyAtPosition(x, y, returnInfo = false) {
+            if (!keyboardCorners || keyboardCorners.length !== 4) return null;
+
+            // Get corners
+            const topLeft = keyboardCorners[0];
+            const topRight = keyboardCorners[1];
+            const bottomRight = keyboardCorners[2];
+            const bottomLeft = keyboardCorners[3];
+
+            // Calculate relative position within keyboard bounds
+            // Using bilinear interpolation for better accuracy with non-rectangular shapes
+            const relX = (x - topLeft.x) / (topRight.x - topLeft.x);
+            const relY = (y - topLeft.y) / (bottomLeft.y - topLeft.y);
+
+            // Determine which row (0-2)
+            let rowIdx = -1;
+            if (relY < 0.33) {
+                rowIdx = 0; // Top row (QWERTY)
+            } else if (relY < 0.66) {
+                rowIdx = 1; // Middle row (ASDFGH...)
+            } else {
+                rowIdx = 2; // Bottom row (ZXCVBN...)
+            }
+
+            // Early return if outside vertical bounds
+            if (rowIdx < 0 || rowIdx >= keyboardLayout.length || relY < 0 || relY > 1) {
+                return returnInfo ? { row: 'Out', col: 'Out', key: null } : null;
+            }
+
+            // Get the row
+            const row = keyboardLayout[rowIdx];
+            
+            // Calculate column based on number of keys in this row
+            const colIdx = Math.floor(relX * row.length);
+
+            // Check bounds
+            if (colIdx < 0 || colIdx >= row.length || relX < 0 || relX > 1) {
+                return returnInfo ? { row: rowIdx, col: 'Out', key: null } : null;
+            }
+
+            const key = row[colIdx];
+
+            if (returnInfo) {
+                return { row: rowIdx, col: colIdx, key: key };
+            }
+
+            return key;
+        }
+
+        function registerKeyPress(key, fingerId) {
+            const now = Date.now();
+            const lastPress = lastKeyPress[key] || 0;
+            
+            if (now - lastPress < settings.debounceTime) return;
+            
+            lastKeyPress[key] = now;
+            typedText += key;
+            keyPressCount++;
+            
+            document.getElementById('typedText').textContent = typedText;
+            document.getElementById('keyCount').textContent = keyPressCount;
+            
+            // Update recent keys
+            const recentKeys = document.getElementById('recentKeys');
+            const keyDiv = document.createElement('div');
+            keyDiv.className = 'bg-green-700 px-3 py-2 rounded font-mono text-lg animate-pulse';
+            keyDiv.textContent = key;
+            recentKeys.appendChild(keyDiv);
+            
+            // Remove pulse animation after a moment
+            setTimeout(() => {
+                keyDiv.classList.remove('animate-pulse');
+                keyDiv.className = 'bg-slate-700 px-3 py-2 rounded font-mono text-lg';
+            }, 500);
+            
+            if (recentKeys.children.length > 6) {
+                recentKeys.removeChild(recentKeys.firstChild);
+            }
+            
+            // Update WPM
+            const minutes = (now - startTime) / 60000;
+            const words = typedText.split(' ').filter(w => w.length > 0).length;
+            const wpm = minutes > 0 ? Math.round(words / minutes) : 0;
+            document.getElementById('wpmDisplay').textContent = wpm;
+            
+            // Clear finger history
+            if (fingerHistory[fingerId]) {
+                fingerHistory[fingerId].positions = [];
+            }
+
+            // Visual feedback
+            document.getElementById('debugInfo').textContent = `✓ Key pressed: ${key}`;
+        }
+
+        // Drawing utilities
+        function drawConnectors(ctx, landmarks, connections, style) {
+            ctx.strokeStyle = style.color;
+            ctx.lineWidth = style.lineWidth;
+            
+            for (const connection of connections) {
+                const start = landmarks[connection[0]];
+                const end = landmarks[connection[1]];
+                
+                ctx.beginPath();
+                ctx.moveTo(start.x * ctx.canvas.width, start.y * ctx.canvas.height);
+                ctx.lineTo(end.x * ctx.canvas.width, end.y * ctx.canvas.height);
+                ctx.stroke();
+            }
+        }
+
+        function drawLandmarks(ctx, landmarks, style) {
+            ctx.fillStyle = style.color;
+            
+            for (const landmark of landmarks) {
+                ctx.beginPath();
+                ctx.arc(
+                    landmark.x * ctx.canvas.width,
+                    landmark.y * ctx.canvas.height,
+                    style.radius,
+                    0,
+                    2 * Math.PI
+                );
+                ctx.fill();
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('load', initializeHands);
+    </script>
 </body>
 </html>
