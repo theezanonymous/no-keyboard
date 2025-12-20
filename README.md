@@ -9,7 +9,7 @@ It detects fingertip presses over a calibrated paper keyboard area and shows:
 - **WPM estimate** (standard: `(characters / 5) / minute`)
 - A **settings panel** to tune press/lift thresholds and smoothing
 
-This version is refactored into small, readable modules under `./js/`.
+This version is combined into a single HTML file.
 
 ---
 
