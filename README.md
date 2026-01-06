@@ -1,5 +1,5 @@
 # Virtual Paper Keyboard Tracker (MediaPipe Hands)
-
+**Currently under fix**
 A browser-based prototype that turns a **paper QWERTY keyboard** into a “virtual keyboard” using **MediaPipe Hands**.  
 It detects fingertip presses over a calibrated paper keyboard area and shows:
 
